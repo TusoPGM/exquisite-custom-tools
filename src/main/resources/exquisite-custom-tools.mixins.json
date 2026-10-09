@@ -3,7 +3,8 @@
 	"package": "com.e425.exquisitecustomtools.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"GrindstoneMenuMixin"
+		"GrindstoneMenuMixin",
+		"RemoveXpMixin"
 	],
 	"client": ["ItemModelResolverMixin"],
     "injectors": {

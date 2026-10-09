@@ -2,8 +2,8 @@ package com.e425.exquisitecustomtools.mixin;
 
 import com.e425.exquisitecustomtools.ModDataComponents;
 import com.e425.exquisitecustomtools.ModItemTags;
+import com.e425.exquisitecustomtools.access.GrindstoneUpgradeAccess;
 
-import net.minecraft.tags.ItemTags;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -12,7 +12,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -30,8 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(GrindstoneMenu.class)
-public class GrindstoneMenuMixin {
-
+public class GrindstoneMenuMixin implements GrindstoneUpgradeAccess {
 	@Shadow
 	@Final
 	private Container repairSlots;
@@ -39,8 +37,18 @@ public class GrindstoneMenuMixin {
 	@Shadow
 	@Final
 	private Container resultSlots;
+
 	@Unique
 	private Inventory exquisite$inventory;
+
+	@Unique
+	private boolean exquisite$successfulUpgrade;
+
+	@Override
+	public boolean exquisite$isSuccessfulUpgrade() {
+        return this.exquisite$successfulUpgrade;
+    }
+
 
 	@Inject(
 			method = "<init>(ILnet/minecraft/world/entity/player/Inventory;Lnet/minecraft/world/inventory/ContainerLevelAccess;)V",
@@ -64,16 +72,22 @@ public class GrindstoneMenuMixin {
 			ItemStack input,
 			ItemStack ingredient,
 			CallbackInfoReturnable<ItemStack> cir) {
+		this.exquisite$successfulUpgrade = false;
 
 		// Axe
-		if (input.is(ItemTags.AXES) && ingredient.is(Items.GOLD_INGOT)) {
+		if (input.is(ModItemTags.UPGRADEABLE_TOOLS) && ingredient.is(Items.GOLD_INGOT)) {
 			ItemStack result = input.copy();
 			Holder<Enchantment> mending =
 					exquisite$getEnchantment(Enchantments.MENDING);
-			result.enchant(mending, 1);
-			result.set(ModDataComponents.TOOL_UPGRADE, "gold_axe");
+			boolean upgraded = exquisite$upgradeEnchantment(result, mending, 1);
+			if (!upgraded) {
+				cir.setReturnValue(ItemStack.EMPTY);
+				return;
+			}
+			this.exquisite$successfulUpgrade = true;
 			cir.setReturnValue(result);
 		}
+
 		if (input.is(ModItemTags.UPGRADEABLE_TOOLS) && ingredient.is(Items.IRON_INGOT)) {
 			ItemStack result = input.copy();
 			Holder<Enchantment> unbreaking =
@@ -83,9 +97,11 @@ public class GrindstoneMenuMixin {
 				cir.setReturnValue(ItemStack.EMPTY);
 				return;
 			}
+			this.exquisite$successfulUpgrade = true;
 			cir.setReturnValue(result);
 		}
-		if (input.is(ItemTags.AXES) && ingredient.is(Items.LAPIS_LAZULI)) {
+
+		if (input.is(ModItemTags.UPGRADEABLE_TOOLS) && ingredient.is(Items.LAPIS_LAZULI)) {
 			ItemStack result = input.copy();
 			Holder<Enchantment> efficiency =
 					exquisite$getEnchantment(Enchantments.EFFICIENCY);
@@ -94,6 +110,7 @@ public class GrindstoneMenuMixin {
 				cir.setReturnValue(ItemStack.EMPTY);
 				return;
 			}
+			this.exquisite$successfulUpgrade = true;
 			cir.setReturnValue(result);
 		}
 	}
