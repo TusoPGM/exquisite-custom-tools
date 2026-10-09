@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "exquisite-custom-tools:item/diamond_axe_gold"
+  }
+}
