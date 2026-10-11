@@ -3,10 +3,13 @@ package com.e425.exquisitecustomtools.mixin;
 import com.e425.exquisitecustomtools.ModDataComponents;
 import com.e425.exquisitecustomtools.ModItemTags;
 import com.e425.exquisitecustomtools.access.GrindstoneUpgradeAccess;
+import com.e425.exquisitecustomtools.ExquisiteCustomTools;
 
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.core.Holder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -14,7 +17,6 @@ import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 
@@ -74,7 +76,6 @@ public class GrindstoneMenuMixin implements GrindstoneUpgradeAccess {
 			CallbackInfoReturnable<ItemStack> cir) {
 		this.exquisite$successfulUpgrade = false;
 
-		// Axe
 		if (input.is(ModItemTags.UPGRADEABLE_TOOLS) && ingredient.is(Items.GOLD_INGOT)) {
 			ItemStack result = input.copy();
 			Holder<Enchantment> mending =
@@ -106,6 +107,19 @@ public class GrindstoneMenuMixin implements GrindstoneUpgradeAccess {
 			Holder<Enchantment> efficiency =
 					exquisite$getEnchantment(Enchantments.EFFICIENCY);
 			boolean upgraded = exquisite$upgradeEnchantment(result, efficiency, 5);
+			if (!upgraded) {
+				cir.setReturnValue(ItemStack.EMPTY);
+				return;
+			}
+			this.exquisite$successfulUpgrade = true;
+			cir.setReturnValue(result);
+		}
+
+		if (input.is(ItemTags.AXES) && ingredient.is(Items.EMERALD)) {
+			ItemStack result = input.copy();
+			Holder<Enchantment> felling =
+					exquisite$getEnchantment(ResourceKey.create(Registries.ENCHANTMENT, ExquisiteCustomTools.id("felling")));
+			boolean upgraded = exquisite$upgradeEnchantment(result, felling, 1);
 			if (!upgraded) {
 				cir.setReturnValue(ItemStack.EMPTY);
 				return;
@@ -157,6 +171,7 @@ public class GrindstoneMenuMixin implements GrindstoneUpgradeAccess {
 				return stack.is(Items.GOLD_INGOT)
 						|| stack.is(Items.IRON_INGOT)
 						|| stack.is(Items.LAPIS_LAZULI)
+						|| stack.is(Items.EMERALD)
 						|| stack.isDamageableItem()
 						|| EnchantmentHelper.hasAnyEnchantments(stack);
 			}
