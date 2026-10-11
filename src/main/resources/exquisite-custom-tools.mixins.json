@@ -1,3 +1,4 @@
+
 {
 	"required": true,
 	"package": "com.e425.exquisitecustomtools.mixin",
@@ -6,8 +7,7 @@
 		"GrindstoneMenuMixin",
 		"RemoveXpMixin"
 	],
-	"client": ["ItemModelResolverMixin"],
-    "injectors": {
+	"injectors": {
 		"defaultRequire": 1
 	},
 	"overwrites": {
